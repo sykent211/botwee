@@ -104,11 +104,6 @@
             opacity: 1;
         }
 
-        .stat-icon {
-            font-size: 40px;
-            margin-bottom: 15px;
-        }
-
         .stat-label {
             font-size: 13px;
             color: #888;
@@ -123,6 +118,11 @@
             line-height: 1;
         }
 
+        .purple { color: #a78bfa; }
+        .green { color: #00ff88; }
+        .blue { color: #6496ff; }
+        .red { color: #ff6464; }
+
         .keys-section {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -135,9 +135,6 @@
             font-size: 28px;
             font-weight: 700;
             margin-bottom: 30px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
         }
 
         table {
@@ -241,12 +238,6 @@
             color: #666;
         }
 
-        .empty-state-icon {
-            font-size: 64px;
-            margin-bottom: 20px;
-            opacity: 0.3;
-        }
-
         .footer {
             text-align: center;
             padding: 40px;
@@ -288,31 +279,25 @@
 
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-icon">📊</div>
                 <div class="stat-label">Total Keys</div>
                 <div class="stat-value purple" id="totalKeys">0</div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">🟢</div>
                 <div class="stat-label">Active Keys</div>
                 <div class="stat-value green" id="activeKeys">0</div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">🔒</div>
                 <div class="stat-label">Redeemed</div>
                 <div class="stat-value blue" id="redeemedKeys">0</div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">🚫</div>
                 <div class="stat-label">Banned</div>
                 <div class="stat-value red" id="bannedKeys">0</div>
             </div>
         </div>
 
         <div class="keys-section">
-            <div class="section-title">
-                🔑 All Keys
-            </div>
+            <div class="section-title">All Keys</div>
             <table>
                 <thead>
                     <tr>
@@ -327,8 +312,7 @@
                 <tbody id="keysTable">
                     <tr>
                         <td colspan="6" class="empty-state">
-                            <div class="empty-state-icon">🔐</div>
-                            <div>No keys yet. Use <strong>!generatekey</strong> in Discord to create one!</div>
+                            <div>No keys yet. Use !generatekey in Discord to create one</div>
                         </td>
                     </tr>
                 </tbody>
@@ -336,12 +320,13 @@
         </div>
 
         <div class="footer">
-            Powered by Discord Bot • Auto-refreshes every 5 seconds
+            Powered by Discord Bot - Auto-refreshes every 5 seconds
         </div>
     </div>
 
     <script>
-        const API_URL = 'http://localhost:3000'; // Change this to your bot's URL when deployed
+        // CHANGE THIS TO YOUR BOT'S URL
+        const API_URL = 'http://localhost:3000';
 
         async function loadKeys() {
             try {
@@ -374,8 +359,7 @@
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="6" class="empty-state">
-                            <div class="empty-state-icon">🔐</div>
-                            <div>No keys yet. Use <strong>!generatekey</strong> in Discord to create one!</div>
+                            <div>No keys yet. Use !generatekey in Discord to create one</div>
                         </td>
                     </tr>
                 `;
@@ -388,11 +372,11 @@
                 
                 let statusBadge = '';
                 if (data.banned) {
-                    statusBadge = '<span class="status-badge status-banned">🚫 Banned</span>';
+                    statusBadge = '<span class="status-badge status-banned">Banned</span>';
                 } else if (data.hwid) {
-                    statusBadge = '<span class="status-badge status-redeemed">🔒 Redeemed</span>';
+                    statusBadge = '<span class="status-badge status-redeemed">Redeemed</span>';
                 } else {
-                    statusBadge = '<span class="status-badge status-available">🟢 Available</span>';
+                    statusBadge = '<span class="status-badge status-available">Available</span>';
                 }
 
                 row.innerHTML = `
