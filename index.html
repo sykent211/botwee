@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Key System - Admin Panel</title>
+    <title>Key System Dashboard</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+        
         * {
             margin: 0;
             padding: 0;
@@ -12,128 +14,130 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0f;
             color: #fff;
             min-height: 100vh;
-            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(138, 43, 226, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(102, 126, 234, 0.15) 0%, transparent 50%);
+            z-index: -1;
         }
 
         .container {
             max-width: 1400px;
             margin: 0 auto;
+            padding: 40px 20px;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 60px;
+            animation: fadeInDown 0.8s ease;
         }
 
-        .header h1 {
-            font-size: 48px;
-            margin-bottom: 10px;
-            background: linear-gradient(45deg, #667eea, #764ba2);
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo {
+            font-size: 64px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            letter-spacing: -2px;
         }
 
-        .stats {
+        .tagline {
+            font-size: 18px;
+            color: #888;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
         }
 
         .stat-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 15px;
-            padding: 25px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 35px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
         }
 
-        .stat-card h3 {
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.7);
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(138, 43, 226, 0.1) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(138, 43, 226, 0.5);
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+
+        .stat-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
             margin-bottom: 10px;
         }
 
-        .stat-card .number {
-            font-size: 36px;
-            font-weight: bold;
+        .stat-value {
+            font-size: 48px;
+            font-weight: 900;
+            line-height: 1;
         }
 
-        .green { color: #00ff88; }
-        .blue { color: #6496ff; }
-        .purple { color: #a78bfa; }
-
-        .generate-section {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 15px;
-            padding: 30px;
+        .keys-section {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px;
             margin-bottom: 30px;
         }
 
-        .generate-section h2 {
-            margin-bottom: 20px;
+        .section-title {
             font-size: 28px;
-        }
-
-        .btn {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            border-radius: 10px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .btn:hover {
-            transform: scale(1.05);
-        }
-
-        .key-display {
-            margin-top: 20px;
-            background: rgba(0, 255, 100, 0.1);
-            border: 2px solid rgba(0, 255, 100, 0.5);
-            padding: 20px;
-            border-radius: 10px;
-            display: none;
-        }
-
-        .key-display.show {
-            display: block;
-        }
-
-        .key-code {
-            font-family: 'Courier New', monospace;
-            font-size: 24px;
-            color: #00ff88;
-            margin: 10px 0;
-        }
-
-        .copy-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            color: white;
-            margin-left: 10px;
-        }
-
-        .keys-table {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 15px;
-            padding: 30px;
+            font-weight: 700;
             margin-bottom: 30px;
-            overflow-x: auto;
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
 
         table {
@@ -141,21 +145,45 @@
             border-collapse: collapse;
         }
 
-        th, td {
-            padding: 15px;
+        th {
             text-align: left;
+            padding: 15px 20px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #888;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
+        td {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .key-code {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            background: rgba(138, 43, 226, 0.2);
+            padding: 8px 12px;
+            border-radius: 6px;
+            display: inline-block;
+        }
+
         .status-badge {
-            padding: 5px 15px;
+            padding: 6px 14px;
             border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .status-available {
-            background: rgba(0, 255, 100, 0.2);
+            background: rgba(0, 255, 136, 0.2);
             color: #00ff88;
         }
 
@@ -164,180 +192,235 @@
             color: #6496ff;
         }
 
-        .action-btn {
-            padding: 5px 12px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 12px;
-            margin: 0 2px;
-            border: none;
-            color: white;
-            background: rgba(255, 100, 100, 0.3);
+        .status-banned {
+            background: rgba(255, 100, 100, 0.2);
+            color: #ff6464;
+        }
+
+        .connection-status {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
+        }
+
+        .connected .status-dot {
+            background: #00ff88;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+        }
+
+        .disconnected .status-dot {
+            background: #ff6464;
+            box-shadow: 0 0 20px rgba(255, 100, 100, 0.5);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #666;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 13px;
+        }
+
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 42px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .connection-status {
+                top: 15px;
+                right: 15px;
+                padding: 10px 18px;
+                font-size: 12px;
+            }
         }
     </style>
 </head>
 <body>
+    <div class="background"></div>
+    
+    <div class="connection-status" id="connectionStatus">
+        <div class="status-dot"></div>
+        <span>Connecting...</span>
+    </div>
+
     <div class="container">
         <div class="header">
-            <h1>🔐 Key System - Admin Panel</h1>
-            <p>Generate and manage keys</p>
+            <div class="logo">KEY SYSTEM</div>
+            <div class="tagline">Dashboard</div>
         </div>
 
-        <div class="stats">
+        <div class="stats-grid">
             <div class="stat-card">
-                <h3>Total Keys</h3>
-                <div class="number purple" id="totalKeys">0</div>
+                <div class="stat-icon">📊</div>
+                <div class="stat-label">Total Keys</div>
+                <div class="stat-value purple" id="totalKeys">0</div>
             </div>
             <div class="stat-card">
-                <h3>Active Keys</h3>
-                <div class="number green" id="activeKeys">0</div>
+                <div class="stat-icon">🟢</div>
+                <div class="stat-label">Active Keys</div>
+                <div class="stat-value green" id="activeKeys">0</div>
             </div>
             <div class="stat-card">
-                <h3>Redeemed Keys</h3>
-                <div class="number blue" id="redeemedKeys">0</div>
+                <div class="stat-icon">🔒</div>
+                <div class="stat-label">Redeemed</div>
+                <div class="stat-value blue" id="redeemedKeys">0</div>
             </div>
-        </div>
-
-        <div class="generate-section">
-            <h2>🔑 Generate New Key</h2>
-            <button class="btn" onclick="generateKey()">Generate Key</button>
-            
-            <div class="key-display" id="keyDisplay">
-                <p style="color: #00ff88; font-weight: bold;">✨ Key Generated!</p>
-                <div class="key-code">
-                    <span id="generatedKey"></span>
-                    <button class="copy-btn" onclick="copyKey()">Copy</button>
-                </div>
+            <div class="stat-card">
+                <div class="stat-icon">🚫</div>
+                <div class="stat-label">Banned</div>
+                <div class="stat-value red" id="bannedKeys">0</div>
             </div>
         </div>
 
-        <div class="keys-table">
-            <h2>📊 All Keys</h2>
+        <div class="keys-section">
+            <div class="section-title">
+                🔑 All Keys
+            </div>
             <table>
                 <thead>
                     <tr>
                         <th>Key</th>
                         <th>Status</th>
-                        <th>HWID</th>
+                        <th>Discord User</th>
                         <th>Roblox User</th>
+                        <th>Uses</th>
                         <th>Created</th>
-                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="keysTable">
                     <tr>
-                        <td colspan="6" style="text-align: center; padding: 40px;">
-                            No keys yet. Generate one!
+                        <td colspan="6" class="empty-state">
+                            <div class="empty-state-icon">🔐</div>
+                            <div>No keys yet. Use <strong>!generatekey</strong> in Discord to create one!</div>
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
+
+        <div class="footer">
+            Powered by Discord Bot • Auto-refreshes every 5 seconds
+        </div>
     </div>
 
     <script>
-        // Load keys from storage
+        const API_URL = 'http://localhost:3000'; // Change this to your bot's URL when deployed
+
         async function loadKeys() {
             try {
-                const result = await window.storage.get('all_keys');
-                return result ? JSON.parse(result.value) : {};
-            } catch {
-                return {};
+                const response = await fetch(`${API_URL}/api/keys`);
+                if (!response.ok) throw new Error('Failed to fetch');
+                
+                const data = await response.json();
+                displayKeys(data.keys);
+                updateConnectionStatus(true);
+            } catch (error) {
+                console.error('Error loading keys:', error);
+                updateConnectionStatus(false);
             }
         }
 
-        // Save keys to storage
-        async function saveKeys(keys) {
-            await window.storage.set('all_keys', JSON.stringify(keys));
-        }
-
-        // Generate random key
-        function generateKeyString() {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-            const segments = [];
-            for (let i = 0; i < 4; i++) {
-                let segment = '';
-                for (let j = 0; j < 4; j++) {
-                    segment += chars[Math.floor(Math.random() * chars.length)];
-                }
-                segments.push(segment);
-            }
-            return segments.join('-');
-        }
-
-        // Generate new key
-        async function generateKey() {
-            const keys = await loadKeys();
-            const key = generateKeyString();
-            
-            keys[key] = {
-                hwid: null,
-                robloxUsername: null,
-                robloxId: null,
-                createdAt: Date.now(),
-                redeemedAt: null
-            };
-
-            await saveKeys(keys);
-            document.getElementById('generatedKey').textContent = key;
-            document.getElementById('keyDisplay').classList.add('show');
-            displayKeys();
-        }
-
-        // Copy key
-        function copyKey() {
-            const key = document.getElementById('generatedKey').textContent;
-            navigator.clipboard.writeText(key);
-            alert('Key copied!');
-        }
-
-        // Delete key
-        async function deleteKey(key) {
-            if (!confirm('Delete this key?')) return;
-            const keys = await loadKeys();
-            delete keys[key];
-            await saveKeys(keys);
-            displayKeys();
-        }
-
-        // Display keys in table
-        async function displayKeys() {
-            const keys = await loadKeys();
+        function displayKeys(keys) {
             const total = Object.keys(keys).length;
-            const active = Object.values(keys).filter(k => !k.hwid).length;
-            const redeemed = Object.values(keys).filter(k => k.hwid).length;
+            const active = Object.values(keys).filter(k => !k.hwid && !k.banned).length;
+            const redeemed = Object.values(keys).filter(k => k.hwid && !k.banned).length;
+            const banned = Object.values(keys).filter(k => k.banned).length;
 
             document.getElementById('totalKeys').textContent = total;
             document.getElementById('activeKeys').textContent = active;
             document.getElementById('redeemedKeys').textContent = redeemed;
+            document.getElementById('bannedKeys').textContent = banned;
 
             const tbody = document.getElementById('keysTable');
+            
             if (total === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;">No keys yet. Generate one!</td></tr>';
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="empty-state">
+                            <div class="empty-state-icon">🔐</div>
+                            <div>No keys yet. Use <strong>!generatekey</strong> in Discord to create one!</div>
+                        </td>
+                    </tr>
+                `;
                 return;
             }
 
             tbody.innerHTML = '';
             Object.entries(keys).reverse().forEach(([key, data]) => {
                 const row = document.createElement('tr');
-                const statusBadge = data.hwid 
-                    ? '<span class="status-badge status-redeemed">🔒 Redeemed</span>'
-                    : '<span class="status-badge status-available">🟢 Available</span>';
+                
+                let statusBadge = '';
+                if (data.banned) {
+                    statusBadge = '<span class="status-badge status-banned">🚫 Banned</span>';
+                } else if (data.hwid) {
+                    statusBadge = '<span class="status-badge status-redeemed">🔒 Redeemed</span>';
+                } else {
+                    statusBadge = '<span class="status-badge status-available">🟢 Available</span>';
+                }
 
                 row.innerHTML = `
-                    <td><code>${key}</code></td>
+                    <td><span class="key-code">${key}</span></td>
                     <td>${statusBadge}</td>
-                    <td><code style="font-size: 11px;">${data.hwid ? data.hwid.substring(0, 16) + '...' : '-'}</code></td>
+                    <td>${data.discordUsername || '-'}</td>
                     <td>${data.robloxUsername || '-'}</td>
-                    <td>${new Date(data.createdAt).toLocaleDateString()}</td>
-                    <td><button class="action-btn" onclick="deleteKey('${key}')">Delete</button></td>
+                    <td>${data.uses || 0}/${data.maxUses || 1}</td>
+                    <td>${data.createdAt ? new Date(data.createdAt).toLocaleDateString() : '-'}</td>
                 `;
                 tbody.appendChild(row);
             });
         }
 
-        // Initial load
-        displayKeys();
+        function updateConnectionStatus(connected) {
+            const statusEl = document.getElementById('connectionStatus');
+            if (connected) {
+                statusEl.className = 'connection-status connected';
+                statusEl.innerHTML = '<div class="status-dot"></div><span>Connected</span>';
+            } else {
+                statusEl.className = 'connection-status disconnected';
+                statusEl.innerHTML = '<div class="status-dot"></div><span>Disconnected</span>';
+            }
+        }
+
+        // Load keys every 5 seconds
+        setInterval(loadKeys, 5000);
+        loadKeys();
     </script>
 </body>
 </html>
