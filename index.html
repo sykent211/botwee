@@ -203,6 +203,10 @@
             color: white;
             background: rgba(255, 100, 100, 0.3);
         }
+
+        .action-btn:hover {
+            background: rgba(255, 100, 100, 0.5);
+        }
     </style>
 </head>
 <body>
@@ -232,7 +236,7 @@
             <h2>🔍 Check Key Validity</h2>
             <div class="input-group">
                 <label>Enter Key to Check</label>
-                <input type="text" id="checkKeyInput" placeholder="XXXX-XXXX-XXXX-XXXX">
+                <input type="text" id="checkKeyInput" placeholder="XXXX-XXXX-XXXX-XXXX" style="text-transform: uppercase;">
             </div>
             <button class="btn btn-success" onclick="checkKey()">Check Key</button>
             
@@ -280,7 +284,8 @@
             try {
                 const result = await window.storage.get('all_keys');
                 return result ? JSON.parse(result.value) : {};
-            } catch {
+            } catch (error) {
+                console.error('Error loading keys:', error);
                 return {};
             }
         }
@@ -288,10 +293,11 @@
         async function saveKeys(keys) {
             try {
                 await window.storage.set('all_keys', JSON.stringify(keys));
-                console.log('Keys saved successfully!');
+                console.log('✅ Keys saved successfully!');
                 return true;
             } catch (error) {
-                console.error('Error saving keys:', error);
+                console.error('❌ Error saving keys:', error);
+                alert('Error saving keys: ' + error.message);
                 return false;
             }
         }
@@ -312,36 +318,41 @@
 
         // Generate new key
         async function generateKey() {
-            const keys = await loadKeys();
-            const key = generateKeyString();
-            
-            keys[key] = {
-                hwid: null,
-                robloxUsername: null,
-                robloxId: null,
-                createdAt: Date.now(),
-                redeemedAt: null,
-                valid: true
-            };
+            try {
+                const keys = await loadKeys();
+                const key = generateKeyString();
+                
+                keys[key] = {
+                    hwid: null,
+                    robloxUsername: null,
+                    robloxId: null,
+                    createdAt: Date.now(),
+                    redeemedAt: null,
+                    valid: true
+                };
 
-            const saved = await saveKeys(keys);
-            
-            if (saved) {
-                const resultBox = document.getElementById('genResult');
-                resultBox.innerHTML = `
-                    <p style="color: #00ff88; font-weight: bold; font-size: 18px;">✨ Key Generated Successfully!</p>
-                    <div class="key-code">
-                        <span id="generatedKey">${key}</span>
-                        <button class="copy-btn" onclick="copyKey('${key}')">📋 Copy</button>
-                    </div>
-                    <p style="color: rgba(255,255,255,0.7); margin-top: 10px;">
-                        ✅ Key saved and ready to use!
-                    </p>
-                `;
-                resultBox.classList.add('show');
-                displayKeys();
-            } else {
-                alert('Error saving key!');
+                const saved = await saveKeys(keys);
+                
+                if (saved) {
+                    const resultBox = document.getElementById('genResult');
+                    resultBox.innerHTML = `
+                        <p style="color: #00ff88; font-weight: bold; font-size: 18px;">✨ Key Generated Successfully!</p>
+                        <div class="key-code">
+                            <span id="generatedKey">${key}</span>
+                            <button class="copy-btn" onclick="copyKey('${key}')">📋 Copy</button>
+                        </div>
+                        <p style="color: rgba(255,255,255,0.7); margin-top: 10px;">
+                            ✅ Key saved and ready to use!<br>
+                            ✅ Give this key to users<br>
+                            ✅ They can redeem it in Discord
+                        </p>
+                    `;
+                    resultBox.classList.add('show');
+                    await displayKeys();
+                }
+            } catch (error) {
+                console.error('Error generating key:', error);
+                alert('Error generating key: ' + error.message);
             }
         }
 
@@ -419,46 +430,56 @@
         // Delete key
         async function deleteKey(key) {
             if (!confirm('Delete key: ' + key + '?')) return;
-            const keys = await loadKeys();
-            delete keys[key];
-            await saveKeys(keys);
-            displayKeys();
+            try {
+                const keys = await loadKeys();
+                delete keys[key];
+                await saveKeys(keys);
+                await displayKeys();
+            } catch (error) {
+                alert('Error deleting key: ' + error.message);
+            }
         }
 
         // Display all keys in table
         async function displayKeys() {
-            const keys = await loadKeys();
-            const total = Object.keys(keys).length;
-            const active = Object.values(keys).filter(k => !k.hwid && k.valid).length;
-            const redeemed = Object.values(keys).filter(k => k.hwid).length;
+            try {
+                const keys = await loadKeys();
+                const total = Object.keys(keys).length;
+                const active = Object.values(keys).filter(k => !k.hwid && k.valid).length;
+                const redeemed = Object.values(keys).filter(k => k.hwid).length;
 
-            document.getElementById('totalKeys').textContent = total;
-            document.getElementById('activeKeys').textContent = active;
-            document.getElementById('redeemedKeys').textContent = redeemed;
+                document.getElementById('totalKeys').textContent = total;
+                document.getElementById('activeKeys').textContent = active;
+                document.getElementById('redeemedKeys').textContent = redeemed;
 
-            const tbody = document.getElementById('keysTable');
-            if (total === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;">No keys generated yet. Click "Generate Key"!</td></tr>';
-                return;
+                const tbody = document.getElementById('keysTable');
+                if (total === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;">No keys generated yet. Click "Generate Key"!</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = '';
+                Object.entries(keys).reverse().forEach(([key, data]) => {
+                    const row = document.createElement('tr');
+                    const statusBadge = data.hwid 
+                        ? '<span class="status-badge status-redeemed">🔒 Redeemed</span>'
+                        : '<span class="status-badge status-available">🟢 Available</span>';
+
+                    row.innerHTML = `
+                        <td><code style="color: #a78bfa;">${key}</code></td>
+                        <td>${statusBadge}</td>
+                        <td><code style="font-size: 11px;">${data.hwid ? data.hwid.substring(0, 16) + '...' : '-'}</code></td>
+                        <td>${data.robloxUsername || '-'}</td>
+                        <td>${new Date(data.createdAt).toLocaleDateString()} ${new Date(data.createdAt).toLocaleTimeString()}</td>
+                        <td><button class="action-btn" onclick="deleteKey('${key}')">Delete</button></td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error displaying keys:', error);
+                document.getElementById('keysTable').innerHTML = 
+                    '<tr><td colspan="6" style="text-align: center; padding: 40px; color: #ff6464;">Error loading keys</td></tr>';
             }
-
-            tbody.innerHTML = '';
-            Object.entries(keys).reverse().forEach(([key, data]) => {
-                const row = document.createElement('tr');
-                const statusBadge = data.hwid 
-                    ? '<span class="status-badge status-redeemed">🔒 Redeemed</span>'
-                    : '<span class="status-badge status-available">🟢 Available</span>';
-
-                row.innerHTML = `
-                    <td><code style="color: #a78bfa;">${key}</code></td>
-                    <td>${statusBadge}</td>
-                    <td><code style="font-size: 11px;">${data.hwid ? data.hwid.substring(0, 16) + '...' : '-'}</code></td>
-                    <td>${data.robloxUsername || '-'}</td>
-                    <td>${new Date(data.createdAt).toLocaleDateString()}</td>
-                    <td><button class="action-btn" onclick="deleteKey('${key}')">Delete</button></td>
-                `;
-                tbody.appendChild(row);
-            });
         }
 
         // Allow Enter key to check
@@ -467,6 +488,11 @@
                 if (e.key === 'Enter') {
                     checkKey();
                 }
+            });
+            
+            // Make input uppercase as you type
+            document.getElementById('checkKeyInput').addEventListener('input', function(e) {
+                e.target.value = e.target.value.toUpperCase();
             });
             
             // Initial load
