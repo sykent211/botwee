@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Key System - Admin Panel</title>
+    <title>File Panel - Admin</title>
     <style>
         * {
             margin: 0;
@@ -16,6 +16,12 @@
             background: #0a0a0a;
             color: #ffffff;
             min-height: 100vh;
+            transition: all 0.3s;
+        }
+
+        body.light-mode {
+            background: #ffffff;
+            color: #000000;
         }
 
         .sidebar {
@@ -27,6 +33,12 @@
             background: #000000;
             border-right: 1px solid #1a1a1a;
             padding: 30px 0;
+            transition: all 0.3s;
+        }
+
+        body.light-mode .sidebar {
+            background: #f5f5f5;
+            border-right: 1px solid #e0e0e0;
         }
 
         .logo {
@@ -37,6 +49,10 @@
         .logo h1 {
             font-size: 24px;
             color: #ffffff;
+        }
+
+        body.light-mode .logo h1 {
+            color: #000000;
         }
 
         .nav-item {
@@ -55,10 +71,21 @@
             color: #ffffff;
         }
 
+        body.light-mode .nav-item:hover {
+            background: #e0e0e0;
+            color: #000000;
+        }
+
         .nav-item.active {
             background: #1a1a1a;
             color: #ffffff;
             border-left-color: #ffffff;
+        }
+
+        body.light-mode .nav-item.active {
+            background: #e0e0e0;
+            color: #000000;
+            border-left-color: #000000;
         }
 
         .main-content {
@@ -92,6 +119,12 @@
             border: 1px solid #1a1a1a;
             border-radius: 8px;
             padding: 24px;
+            transition: all 0.3s;
+        }
+
+        body.light-mode .stat-card {
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
         }
 
         .stat-card h3 {
@@ -113,6 +146,12 @@
             border-radius: 8px;
             padding: 30px;
             margin-bottom: 30px;
+            transition: all 0.3s;
+        }
+
+        body.light-mode .card {
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
         }
 
         .card h3 {
@@ -131,7 +170,7 @@
             font-size: 14px;
         }
 
-        .input-group input, .input-group textarea {
+        .input-group input, .input-group select {
             width: 100%;
             padding: 12px 16px;
             background: #0a0a0a;
@@ -139,12 +178,25 @@
             border-radius: 6px;
             color: #ffffff;
             font-size: 14px;
-            transition: border-color 0.3s;
+            transition: all 0.3s;
         }
 
-        .input-group input:focus, .input-group textarea:focus {
+        body.light-mode .input-group input,
+        body.light-mode .input-group select {
+            background: #ffffff;
+            border: 1px solid #e0e0e0;
+            color: #000000;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
             outline: none;
             border-color: #ffffff;
+        }
+
+        body.light-mode .input-group input:focus,
+        body.light-mode .input-group select:focus {
+            border-color: #000000;
         }
 
         .btn {
@@ -163,15 +215,34 @@
             background: #e0e0e0;
         }
 
+        body.light-mode .btn {
+            background: #000000;
+            color: #ffffff;
+        }
+
+        body.light-mode .btn:hover {
+            background: #333333;
+        }
+
         .btn-outline {
             background: transparent;
             color: #ffffff;
             border: 1px solid #ffffff;
         }
 
+        body.light-mode .btn-outline {
+            color: #000000;
+            border: 1px solid #000000;
+        }
+
         .btn-outline:hover {
             background: #ffffff;
             color: #000000;
+        }
+
+        body.light-mode .btn-outline:hover {
+            background: #000000;
+            color: #ffffff;
         }
 
         .result-box {
@@ -191,6 +262,11 @@
             border-left-color: #ffffff;
         }
 
+        body.light-mode .result-box.success {
+            background: rgba(0, 0, 0, 0.05);
+            border-left-color: #000000;
+        }
+
         .result-box.error {
             background: rgba(255, 255, 255, 0.05);
             border-left-color: #808080;
@@ -205,6 +281,11 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+        }
+
+        body.light-mode .key-display {
+            background: #ffffff;
+            border: 1px solid #e0e0e0;
         }
 
         .key-text {
@@ -224,8 +305,17 @@
             transition: all 0.3s;
         }
 
+        body.light-mode .copy-btn {
+            color: #000000;
+            border: 1px solid #e0e0e0;
+        }
+
         .copy-btn:hover {
             border-color: #ffffff;
+        }
+
+        body.light-mode .copy-btn:hover {
+            border-color: #000000;
         }
 
         .tab-content {
@@ -252,14 +342,26 @@
             font-weight: 600;
         }
 
+        body.light-mode th {
+            border-bottom: 1px solid #e0e0e0;
+        }
+
         td {
             padding: 16px;
             border-bottom: 1px solid #1a1a1a;
             font-size: 14px;
         }
 
+        body.light-mode td {
+            border-bottom: 1px solid #e0e0e0;
+        }
+
         tr:hover {
             background: rgba(255, 255, 255, 0.02);
+        }
+
+        body.light-mode tr:hover {
+            background: rgba(0, 0, 0, 0.02);
         }
 
         .badge {
@@ -273,6 +375,11 @@
         .badge-available {
             background: rgba(255, 255, 255, 0.1);
             color: #ffffff;
+        }
+
+        body.light-mode .badge-available {
+            background: rgba(0, 0, 0, 0.1);
+            color: #000000;
         }
 
         .badge-redeemed {
@@ -291,9 +398,18 @@
             transition: all 0.3s;
         }
 
+        body.light-mode .action-btn {
+            border: 1px solid #e0e0e0;
+        }
+
         .action-btn:hover {
             color: #ffffff;
             border-color: #ffffff;
+        }
+
+        body.light-mode .action-btn:hover {
+            color: #000000;
+            border-color: #000000;
         }
 
         code {
@@ -303,24 +419,51 @@
             padding: 2px 6px;
             border-radius: 3px;
         }
+
+        body.light-mode code {
+            color: #000000;
+            background: #e0e0e0;
+        }
+
+        .audio-player {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #000000;
+            border: 1px solid #1a1a1a;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 12px;
+            color: #808080;
+            z-index: 1000;
+        }
+
+        body.light-mode .audio-player {
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+        }
     </style>
 </head>
 <body>
+    <audio id="bgMusic" loop autoplay>
+        <source src="" type="audio/mpeg">
+    </audio>
+
     <div class="sidebar">
         <div class="logo">
-            <h1>🔐 Key System</h1>
+            <h1>File Panel</h1>
         </div>
         <div class="nav-item active" onclick="showTab('generate')">
-            <span>⚡</span>
             <span>Generate</span>
         </div>
         <div class="nav-item" onclick="showTab('check')">
-            <span>🔍</span>
             <span>Check Key</span>
         </div>
         <div class="nav-item" onclick="showTab('keys')">
-            <span>📊</span>
             <span>All Keys</span>
+        </div>
+        <div class="nav-item" onclick="showTab('settings')">
+            <span>Settings</span>
         </div>
     </div>
 
@@ -417,9 +560,83 @@
                 </table>
             </div>
         </div>
+
+        <!-- Settings Tab -->
+        <div class="tab-content" id="tab-settings">
+            <div class="header">
+                <h2>Settings</h2>
+                <p>Customize your experience</p>
+            </div>
+
+            <div class="card">
+                <h3>Appearance</h3>
+                <div class="input-group">
+                    <label>Theme</label>
+                    <select id="themeSelect" onchange="changeTheme()">
+                        <option value="dark">Dark</option>
+                        <option value="light">Light</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Background Music</h3>
+                <div class="input-group">
+                    <label>Select Song</label>
+                    <select id="songSelect" onchange="changeSong()">
+                        <option value="default">I Thought I Saw Your Face Today</option>
+                        <option value="alt">How to Save a Life</option>
+                    </select>
+                </div>
+                <p style="color: #808080; font-size: 12px; margin-top: 10px;">
+                    Note: Music requires browser autoplay permission
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="audio-player" id="nowPlaying">
+        Now Playing: I Thought I Saw Your Face Today
     </div>
 
     <script>
+        // Initialize settings
+        function loadSettings() {
+            const theme = localStorage.getItem('theme') || 'dark';
+            const song = localStorage.getItem('song') || 'default';
+            
+            document.getElementById('themeSelect').value = theme;
+            document.getElementById('songSelect').value = song;
+            
+            if (theme === 'light') {
+                document.body.classList.add('light-mode');
+            }
+            
+            updateNowPlaying(song);
+        }
+
+        function changeTheme() {
+            const theme = document.getElementById('themeSelect').value;
+            localStorage.setItem('theme', theme);
+            
+            if (theme === 'light') {
+                document.body.classList.add('light-mode');
+            } else {
+                document.body.classList.remove('light-mode');
+            }
+        }
+
+        function changeSong() {
+            const song = document.getElementById('songSelect').value;
+            localStorage.setItem('song', song);
+            updateNowPlaying(song);
+        }
+
+        function updateNowPlaying(song) {
+            const songName = song === 'default' ? 'I Thought I Saw Your Face Today' : 'How to Save a Life';
+            document.getElementById('nowPlaying').textContent = 'Now Playing: ' + songName;
+        }
+
         // Tab switching
         function showTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(tab => {
@@ -436,28 +653,49 @@
             }
         }
 
-        // Storage functions
+        // Storage functions - Using localStorage as fallback
         async function loadKeys() {
             try {
-                const result = await window.storage.get('all_keys');
-                if (result && result.value) {
-                    return JSON.parse(result.value);
+                // Try window.storage first
+                if (window.storage) {
+                    const result = await window.storage.get('all_keys');
+                    if (result && result.value) {
+                        return JSON.parse(result.value);
+                    }
                 }
-                return {};
+                // Fallback to localStorage
+                const localData = localStorage.getItem('all_keys');
+                return localData ? JSON.parse(localData) : {};
             } catch (error) {
                 console.error('Error loading keys:', error);
-                return {};
+                // Return from localStorage as last resort
+                const localData = localStorage.getItem('all_keys');
+                return localData ? JSON.parse(localData) : {};
             }
         }
 
         async function saveKeys(keys) {
             try {
-                await window.storage.set('all_keys', JSON.stringify(keys));
+                const keysStr = JSON.stringify(keys);
+                
+                // Save to localStorage first (always works)
+                localStorage.setItem('all_keys', keysStr);
+                
+                // Try window.storage if available
+                if (window.storage) {
+                    try {
+                        await window.storage.set('all_keys', keysStr);
+                    } catch (e) {
+                        console.log('window.storage not available, using localStorage');
+                    }
+                }
+                
                 console.log('Keys saved successfully');
                 updateStats();
                 return true;
             } catch (error) {
                 console.error('Error saving keys:', error);
+                alert('Failed to save key: ' + error.message);
                 return false;
             }
         }
@@ -478,71 +716,77 @@
 
         // Generate new key
         async function generateKey() {
-            const keys = await loadKeys();
-            const key = generateKeyString();
-            
-            keys[key] = {
-                hwid: null,
-                robloxUsername: null,
-                robloxId: null,
-                createdAt: Date.now(),
-                redeemedAt: null,
-                valid: true
-            };
+            try {
+                const keys = await loadKeys();
+                const key = generateKeyString();
+                
+                keys[key] = {
+                    hwid: null,
+                    robloxUsername: null,
+                    robloxId: null,
+                    createdAt: Date.now(),
+                    redeemedAt: null,
+                    valid: true
+                };
 
-            const saved = await saveKeys(keys);
-            
-            if (saved) {
-                const resultBox = document.getElementById('genResult');
-                resultBox.innerHTML = `
-                    <p style="font-weight: 600; margin-bottom: 12px;">✓ Key Generated Successfully</p>
-                    <div class="key-display">
-                        <span class="key-text">${key}</span>
-                        <button class="copy-btn" onclick="copyKey('${key}')">Copy</button>
-                    </div>
-                `;
-                resultBox.classList.add('show');
-                updateStats();
-            } else {
-                alert('Failed to save key. Please try again.');
+                const saved = await saveKeys(keys);
+                
+                if (saved) {
+                    const resultBox = document.getElementById('genResult');
+                    resultBox.innerHTML = `
+                        <p style="font-weight: 600; margin-bottom: 12px;">Key Generated Successfully</p>
+                        <div class="key-display">
+                            <span class="key-text">${key}</span>
+                            <button class="copy-btn" onclick="copyKey('${key}')">Copy</button>
+                        </div>
+                    `;
+                    resultBox.classList.add('show');
+                    await updateStats();
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
             }
         }
 
         // Add manual key
         async function addManualKey() {
-            const keyInput = document.getElementById('manualKey').value.toUpperCase().trim();
-            const resultBox = document.getElementById('manualResult');
-            
-            if (!keyInput) {
-                resultBox.innerHTML = '<p style="color: #808080;">Please enter a key</p>';
-                resultBox.className = 'result-box error show';
-                return;
-            }
+            try {
+                const keyInput = document.getElementById('manualKey').value.toUpperCase().trim();
+                const resultBox = document.getElementById('manualResult');
+                
+                if (!keyInput) {
+                    resultBox.innerHTML = '<p style="color: #808080;">Please enter a key</p>';
+                    resultBox.className = 'result-box error show';
+                    return;
+                }
 
-            const keys = await loadKeys();
-            
-            if (keys[keyInput]) {
-                resultBox.innerHTML = '<p style="color: #808080;">This key already exists</p>';
-                resultBox.className = 'result-box error show';
-                return;
-            }
+                const keys = await loadKeys();
+                
+                if (keys[keyInput]) {
+                    resultBox.innerHTML = '<p style="color: #808080;">This key already exists</p>';
+                    resultBox.className = 'result-box error show';
+                    return;
+                }
 
-            keys[keyInput] = {
-                hwid: null,
-                robloxUsername: null,
-                robloxId: null,
-                createdAt: Date.now(),
-                redeemedAt: null,
-                valid: true
-            };
+                keys[keyInput] = {
+                    hwid: null,
+                    robloxUsername: null,
+                    robloxId: null,
+                    createdAt: Date.now(),
+                    redeemedAt: null,
+                    valid: true
+                };
 
-            const saved = await saveKeys(keys);
-            
-            if (saved) {
-                resultBox.innerHTML = '<p style="font-weight: 600;">✓ Key added successfully</p>';
-                resultBox.className = 'result-box success show';
-                document.getElementById('manualKey').value = '';
-                updateStats();
+                const saved = await saveKeys(keys);
+                
+                if (saved) {
+                    resultBox.innerHTML = '<p style="font-weight: 600;">Key added successfully</p>';
+                    resultBox.className = 'result-box success show';
+                    document.getElementById('manualKey').value = '';
+                    await updateStats();
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
             }
         }
 
@@ -562,7 +806,7 @@
 
             if (!keyData) {
                 resultBox.innerHTML = `
-                    <p style="font-weight: 600; margin-bottom: 8px;">✗ Key Not Found</p>
+                    <p style="font-weight: 600; margin-bottom: 8px;">Key Not Found</p>
                     <p style="color: #808080; font-size: 14px;">
                         Key <code>${keyInput}</code> does not exist in the system
                     </p>
@@ -573,7 +817,7 @@
 
             if (!keyData.valid) {
                 resultBox.innerHTML = `
-                    <p style="font-weight: 600; margin-bottom: 8px;">✗ Key Invalid</p>
+                    <p style="font-weight: 600; margin-bottom: 8px;">Key Invalid</p>
                     <p style="color: #808080; font-size: 14px;">This key has been deactivated</p>
                 `;
                 resultBox.className = 'result-box error show';
@@ -582,7 +826,7 @@
 
             if (keyData.hwid) {
                 resultBox.innerHTML = `
-                    <p style="font-weight: 600; margin-bottom: 12px;">✓ Key Valid (Redeemed)</p>
+                    <p style="font-weight: 600; margin-bottom: 12px;">Key Valid (Redeemed)</p>
                     <div style="color: #808080; font-size: 14px; line-height: 1.8;">
                         <p>Key: <code>${keyInput}</code></p>
                         <p>Status: Redeemed</p>
@@ -595,7 +839,7 @@
                 resultBox.className = 'result-box success show';
             } else {
                 resultBox.innerHTML = `
-                    <p style="font-weight: 600; margin-bottom: 12px;">✓ Key Valid (Available)</p>
+                    <p style="font-weight: 600; margin-bottom: 12px;">Key Valid (Available)</p>
                     <div style="color: #808080; font-size: 14px; line-height: 1.8;">
                         <p>Key: <code>${keyInput}</code></p>
                         <p>Status: Available (Not redeemed yet)</p>
@@ -621,7 +865,7 @@
             const keys = await loadKeys();
             delete keys[key];
             await saveKeys(keys);
-            displayKeys();
+            await displayKeys();
         }
 
         // Update stats
@@ -669,6 +913,8 @@
 
         // Event listeners
         document.addEventListener('DOMContentLoaded', function() {
+            loadSettings();
+            
             document.getElementById('checkKeyInput').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') checkKey();
             });
