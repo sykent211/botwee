@@ -387,6 +387,11 @@
             color: #808080;
         }
 
+        .badge-blacklisted {
+            background: rgba(255, 0, 0, 0.2);
+            color: #ff4444;
+        }
+
         .action-btn {
             padding: 6px 12px;
             background: transparent;
@@ -396,6 +401,7 @@
             cursor: pointer;
             font-size: 11px;
             transition: all 0.3s;
+            margin-right: 4px;
         }
 
         body.light-mode .action-btn {
@@ -436,16 +442,32 @@
             font-size: 12px;
             color: #808080;
             z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
         body.light-mode .audio-player {
             background: #f5f5f5;
             border: 1px solid #e0e0e0;
         }
+
+        .play-pause-btn {
+            background: transparent;
+            border: none;
+            color: #ffffff;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 4px 8px;
+        }
+
+        body.light-mode .play-pause-btn {
+            color: #000000;
+        }
     </style>
 </head>
 <body>
-    <audio id="bgMusic" loop autoplay>
+    <audio id="bgMusic" loop>
         <source src="" type="audio/mpeg">
     </audio>
 
@@ -488,6 +510,10 @@
                     <h3>Redeemed</h3>
                     <div class="number" id="redeemedKeys">0</div>
                 </div>
+                <div class="stat-card">
+                    <h3>Blacklisted</h3>
+                    <div class="number" id="blacklistedKeys">0</div>
+                </div>
             </div>
 
             <div class="card">
@@ -505,6 +531,10 @@
                 <div class="input-group">
                     <label>Key</label>
                     <input type="text" id="manualKey" placeholder="XXXX-XXXX-XXXX-XXXX" style="text-transform: uppercase;">
+                </div>
+                <div class="input-group">
+                    <label>Discord ID (Optional)</label>
+                    <input type="text" id="manualDiscordId" placeholder="123456789012345678">
                 </div>
                 <button class="btn btn-outline" onclick="addManualKey()">Add Key</button>
                 
@@ -544,6 +574,7 @@
                         <tr>
                             <th>Key</th>
                             <th>Status</th>
+                            <th>Discord ID</th>
                             <th>HWID</th>
                             <th>Roblox User</th>
                             <th>Created</th>
@@ -552,7 +583,7 @@
                     </thead>
                     <tbody id="keysTable">
                         <tr>
-                            <td colspan="6" style="text-align: center; padding: 40px; color: #808080;">
+                            <td colspan="7" style="text-align: center; padding: 40px; color: #808080;">
                                 Loading keys...
                             </td>
                         </tr>
@@ -589,17 +620,39 @@
                     </select>
                 </div>
                 <p style="color: #808080; font-size: 12px; margin-top: 10px;">
-                    Note: Music requires browser autoplay permission
+                    Note: Music requires browser autoplay permission. Use the player controls to play/pause.
                 </p>
             </div>
         </div>
     </div>
 
-    <div class="audio-player" id="nowPlaying">
-        Now Playing: I Thought I Saw Your Face Today
+    <div class="audio-player">
+        <button class="play-pause-btn" id="playPauseBtn" onclick="toggleMusic()">▶</button>
+        <span id="nowPlaying">Now Playing: I Thought I Saw Your Face Today</span>
     </div>
 
     <script>
+        let isPlaying = false;
+
+        // Music controls
+        function toggleMusic() {
+            const audio = document.getElementById('bgMusic');
+            const btn = document.getElementById('playPauseBtn');
+            
+            if (isPlaying) {
+                audio.pause();
+                btn.textContent = '▶';
+                isPlaying = false;
+            } else {
+                audio.play().catch(e => {
+                    console.log('Autoplay prevented:', e);
+                    alert('Please click play button to start music');
+                });
+                btn.textContent = '■';
+                isPlaying = true;
+            }
+        }
+
         // Initialize settings
         function loadSettings() {
             const theme = localStorage.getItem('theme') || 'dark';
@@ -630,6 +683,13 @@
             const song = document.getElementById('songSelect').value;
             localStorage.setItem('song', song);
             updateNowPlaying(song);
+            
+            // Restart music if playing
+            if (isPlaying) {
+                const audio = document.getElementById('bgMusic');
+                audio.load();
+                audio.play();
+            }
         }
 
         function updateNowPlaying(song) {
@@ -653,22 +713,19 @@
             }
         }
 
-        // Storage functions - Using localStorage as fallback
+        // Storage functions
         async function loadKeys() {
             try {
-                // Try window.storage first
                 if (window.storage) {
                     const result = await window.storage.get('all_keys');
                     if (result && result.value) {
                         return JSON.parse(result.value);
                     }
                 }
-                // Fallback to localStorage
                 const localData = localStorage.getItem('all_keys');
                 return localData ? JSON.parse(localData) : {};
             } catch (error) {
                 console.error('Error loading keys:', error);
-                // Return from localStorage as last resort
                 const localData = localStorage.getItem('all_keys');
                 return localData ? JSON.parse(localData) : {};
             }
@@ -677,16 +734,13 @@
         async function saveKeys(keys) {
             try {
                 const keysStr = JSON.stringify(keys);
-                
-                // Save to localStorage first (always works)
                 localStorage.setItem('all_keys', keysStr);
                 
-                // Try window.storage if available
                 if (window.storage) {
                     try {
                         await window.storage.set('all_keys', keysStr);
                     } catch (e) {
-                        console.log('window.storage not available, using localStorage');
+                        console.log('window.storage not available');
                     }
                 }
                 
@@ -724,9 +778,11 @@
                     hwid: null,
                     robloxUsername: null,
                     robloxId: null,
+                    discordId: null,
                     createdAt: Date.now(),
                     redeemedAt: null,
-                    valid: true
+                    valid: true,
+                    blacklisted: false
                 };
 
                 const saved = await saveKeys(keys);
@@ -752,6 +808,7 @@
         async function addManualKey() {
             try {
                 const keyInput = document.getElementById('manualKey').value.toUpperCase().trim();
+                const discordId = document.getElementById('manualDiscordId').value.trim();
                 const resultBox = document.getElementById('manualResult');
                 
                 if (!keyInput) {
@@ -772,9 +829,11 @@
                     hwid: null,
                     robloxUsername: null,
                     robloxId: null,
+                    discordId: discordId || null,
                     createdAt: Date.now(),
                     redeemedAt: null,
-                    valid: true
+                    valid: true,
+                    blacklisted: false
                 };
 
                 const saved = await saveKeys(keys);
@@ -783,11 +842,30 @@
                     resultBox.innerHTML = '<p style="font-weight: 600;">Key added successfully</p>';
                     resultBox.className = 'result-box success show';
                     document.getElementById('manualKey').value = '';
+                    document.getElementById('manualDiscordId').value = '';
                     await updateStats();
                 }
             } catch (error) {
                 alert('Error: ' + error.message);
             }
+        }
+
+        // Blacklist key
+        async function blacklistKey(key) {
+            const keys = await loadKeys();
+            keys[key].blacklisted = true;
+            keys[key].valid = false;
+            await saveKeys(keys);
+            await displayKeys();
+        }
+
+        // Unblacklist key
+        async function unblacklistKey(key) {
+            const keys = await loadKeys();
+            keys[key].blacklisted = false;
+            keys[key].valid = true;
+            await saveKeys(keys);
+            await displayKeys();
         }
 
         // Check key validity
@@ -815,6 +893,15 @@
                 return;
             }
 
+            if (keyData.blacklisted) {
+                resultBox.innerHTML = `
+                    <p style="font-weight: 600; margin-bottom: 8px;">Key Blacklisted</p>
+                    <p style="color: #808080; font-size: 14px;">This key has been blacklisted and cannot be used</p>
+                `;
+                resultBox.className = 'result-box error show';
+                return;
+            }
+
             if (!keyData.valid) {
                 resultBox.innerHTML = `
                     <p style="font-weight: 600; margin-bottom: 8px;">Key Invalid</p>
@@ -830,6 +917,7 @@
                     <div style="color: #808080; font-size: 14px; line-height: 1.8;">
                         <p>Key: <code>${keyInput}</code></p>
                         <p>Status: Redeemed</p>
+                        <p>Discord ID: ${keyData.discordId || 'Not set'}</p>
                         <p>HWID: <code>${keyData.hwid.substring(0, 32)}...</code></p>
                         <p>Roblox User: ${keyData.robloxUsername || 'Not set'}</p>
                         <p>Created: ${new Date(keyData.createdAt).toLocaleString()}</p>
@@ -843,6 +931,7 @@
                     <div style="color: #808080; font-size: 14px; line-height: 1.8;">
                         <p>Key: <code>${keyInput}</code></p>
                         <p>Status: Available (Not redeemed yet)</p>
+                        <p>Discord ID: ${keyData.discordId || 'Not set'}</p>
                         <p>Created: ${new Date(keyData.createdAt).toLocaleString()}</p>
                     </div>
                 `;
@@ -870,69 +959,4 @@
 
         // Update stats
         async function updateStats() {
-            const keys = await loadKeys();
-            const total = Object.keys(keys).length;
-            const active = Object.values(keys).filter(k => !k.hwid && k.valid).length;
-            const redeemed = Object.values(keys).filter(k => k.hwid).length;
-
-            document.getElementById('totalKeys').textContent = total;
-            document.getElementById('activeKeys').textContent = active;
-            document.getElementById('redeemedKeys').textContent = redeemed;
-        }
-
-        // Display all keys
-        async function displayKeys() {
-            const keys = await loadKeys();
-            const tbody = document.getElementById('keysTable');
-            
-            const total = Object.keys(keys).length;
-            
-            if (total === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: #808080;">No keys generated yet</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = '';
-            Object.entries(keys).reverse().forEach(([key, data]) => {
-                const row = document.createElement('tr');
-                const statusBadge = data.hwid 
-                    ? '<span class="badge badge-redeemed">Redeemed</span>'
-                    : '<span class="badge badge-available">Available</span>';
-
-                row.innerHTML = `
-                    <td><code>${key}</code></td>
-                    <td>${statusBadge}</td>
-                    <td><code style="font-size: 11px;">${data.hwid ? data.hwid.substring(0, 16) + '...' : '-'}</code></td>
-                    <td>${data.robloxUsername || '-'}</td>
-                    <td style="font-size: 12px; color: #808080;">${new Date(data.createdAt).toLocaleDateString()}</td>
-                    <td><button class="action-btn" onclick="deleteKey('${key}')">Delete</button></td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-
-        // Event listeners
-        document.addEventListener('DOMContentLoaded', function() {
-            loadSettings();
-            
-            document.getElementById('checkKeyInput').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') checkKey();
-            });
-            
-            document.getElementById('checkKeyInput').addEventListener('input', function(e) {
-                e.target.value = e.target.value.toUpperCase();
-            });
-            
-            document.getElementById('manualKey').addEventListener('input', function(e) {
-                e.target.value = e.target.value.toUpperCase();
-            });
-            
-            updateStats();
-            displayKeys();
-        });
-
-        // Auto-refresh
-        setInterval(updateStats, 10000);
-    </script>
-</body>
-</html>
+            const keys =
