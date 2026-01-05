@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Panel - Admin</title>
+    <title>File.cc</title>
     <style>
         * {
             margin: 0;
@@ -251,10 +251,13 @@
             border-radius: 6px;
             display: none;
             border-left: 3px solid;
+            opacity: 0;
+            transition: opacity 0.3s;
         }
 
         .result-box.show {
             display: block;
+            opacity: 1;
         }
 
         .result-box.success {
@@ -459,21 +462,30 @@
             cursor: pointer;
             font-size: 16px;
             padding: 4px 8px;
+            transition: color 0.3s;
         }
 
         body.light-mode .play-pause-btn {
             color: #000000;
         }
+
+        .play-pause-btn:hover {
+            color: #cccccc;
+        }
+
+        body.light-mode .play-pause-btn:hover {
+            color: #333333;
+        }
     </style>
 </head>
 <body>
     <audio id="bgMusic" loop>
-        <source src="" type="audio/mpeg">
+        <source id="audioSource" src="https://cdn.freesound.org/previews/612/612093_4921277-lq.mp3" type="audio/mpeg">
     </audio>
 
     <div class="sidebar">
         <div class="logo">
-            <h1>File Panel</h1>
+            <h1>File.cc</h1>
         </div>
         <div class="nav-item active" onclick="showTab('generate')">
             <span>Generate</span>
@@ -609,26 +621,12 @@
                     </select>
                 </div>
             </div>
-
-            <div class="card">
-                <h3>Background Music</h3>
-                <div class="input-group">
-                    <label>Select Song</label>
-                    <select id="songSelect" onchange="changeSong()">
-                        <option value="default">I Thought I Saw Your Face Today</option>
-                        <option value="alt">How to Save a Life</option>
-                    </select>
-                </div>
-                <p style="color: #808080; font-size: 12px; margin-top: 10px;">
-                    Note: Music requires browser autoplay permission. Use the player controls to play/pause.
-                </p>
-            </div>
         </div>
     </div>
 
     <div class="audio-player">
         <button class="play-pause-btn" id="playPauseBtn" onclick="toggleMusic()">▶</button>
-        <span id="nowPlaying">Now Playing: I Thought I Saw Your Face Today</span>
+        <span id="nowPlaying">Now Playing: Background Music</span>
     </div>
 
     <script>
@@ -646,7 +644,6 @@
             } else {
                 audio.play().catch(e => {
                     console.log('Autoplay prevented:', e);
-                    alert('Please click play button to start music');
                 });
                 btn.textContent = '■';
                 isPlaying = true;
@@ -656,16 +653,11 @@
         // Initialize settings
         function loadSettings() {
             const theme = localStorage.getItem('theme') || 'dark';
-            const song = localStorage.getItem('song') || 'default';
-            
             document.getElementById('themeSelect').value = theme;
-            document.getElementById('songSelect').value = song;
             
             if (theme === 'light') {
                 document.body.classList.add('light-mode');
             }
-            
-            updateNowPlaying(song);
         }
 
         function changeTheme() {
@@ -677,24 +669,6 @@
             } else {
                 document.body.classList.remove('light-mode');
             }
-        }
-
-        function changeSong() {
-            const song = document.getElementById('songSelect').value;
-            localStorage.setItem('song', song);
-            updateNowPlaying(song);
-            
-            // Restart music if playing
-            if (isPlaying) {
-                const audio = document.getElementById('bgMusic');
-                audio.load();
-                audio.play();
-            }
-        }
-
-        function updateNowPlaying(song) {
-            const songName = song === 'default' ? 'I Thought I Saw Your Face Today' : 'How to Save a Life';
-            document.getElementById('nowPlaying').textContent = 'Now Playing: ' + songName;
         }
 
         // Tab switching
@@ -814,6 +788,10 @@
                 if (!keyInput) {
                     resultBox.innerHTML = '<p style="color: #808080;">Please enter a key</p>';
                     resultBox.className = 'result-box error show';
+                    
+                    setTimeout(() => {
+                        resultBox.classList.remove('show');
+                    }, 7000);
                     return;
                 }
 
@@ -822,6 +800,10 @@
                 if (keys[keyInput]) {
                     resultBox.innerHTML = '<p style="color: #808080;">This key already exists</p>';
                     resultBox.className = 'result-box error show';
+                    
+                    setTimeout(() => {
+                        resultBox.classList.remove('show');
+                    }, 7000);
                     return;
                 }
 
@@ -844,6 +826,10 @@
                     document.getElementById('manualKey').value = '';
                     document.getElementById('manualDiscordId').value = '';
                     await updateStats();
+                    
+                    setTimeout(() => {
+                        resultBox.classList.remove('show');
+                    }, 7000);
                 }
             } catch (error) {
                 alert('Error: ' + error.message);
@@ -970,74 +956,3 @@
             document.getElementById('redeemedKeys').textContent = redeemed;
             document.getElementById('blacklistedKeys').textContent = blacklisted;
         }
-
-        // Display all keys
-        async function displayKeys() {
-            const keys = await loadKeys();
-            const tbody = document.getElementById('keysTable');
-            
-            const total = Object.keys(keys).length;
-            
-            if (total === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: #808080;">No keys generated yet</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = '';
-            Object.entries(keys).reverse().forEach(([key, data]) => {
-                const row = document.createElement('tr');
-                let statusBadge;
-                
-                if (data.blacklisted) {
-                    statusBadge = '<span class="badge badge-blacklisted">Blacklisted</span>';
-                } else if (data.hwid) {
-                    statusBadge = '<span class="badge badge-redeemed">Redeemed</span>';
-                } else {
-                    statusBadge = '<span class="badge badge-available">Available</span>';
-                }
-
-                const blacklistBtn = data.blacklisted 
-                    ? `<button class="action-btn" onclick="unblacklistKey('${key}')">Unblacklist</button>`
-                    : `<button class="action-btn" onclick="blacklistKey('${key}')">Blacklist</button>`;
-
-                row.innerHTML = `
-                    <td><code>${key}</code></td>
-                    <td>${statusBadge}</td>
-                    <td>${data.discordId || '-'}</td>
-                    <td><code style="font-size: 11px;">${data.hwid ? data.hwid.substring(0, 16) + '...' : '-'}</code></td>
-                    <td>${data.robloxUsername || '-'}</td>
-                    <td style="font-size: 12px; color: #808080;">${new Date(data.createdAt).toLocaleDateString()}</td>
-                    <td>
-                        ${blacklistBtn}
-                        <button class="action-btn" onclick="deleteKey('${key}')">Delete</button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-
-        // Event listeners
-        document.addEventListener('DOMContentLoaded', function() {
-            loadSettings();
-            
-            document.getElementById('checkKeyInput').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') checkKey();
-            });
-            
-            document.getElementById('checkKeyInput').addEventListener('input', function(e) {
-                e.target.value = e.target.value.toUpperCase();
-            });
-            
-            document.getElementById('manualKey').addEventListener('input', function(e) {
-                e.target.value = e.target.value.toUpperCase();
-            });
-            
-            updateStats();
-            displayKeys();
-        });
-
-        // Auto-refresh
-        setInterval(updateStats, 10000);
-    </script>
-</body>
-</html>
