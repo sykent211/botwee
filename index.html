@@ -16,7 +16,7 @@
             background: #0a0a0a;
             color: #ffffff;
             min-height: 100vh;
-            transition: all 0.3s;
+            transition: background 0.3s, color 0.3s;
         }
 
         body.light-mode {
@@ -59,9 +59,6 @@
             padding: 15px 30px;
             cursor: pointer;
             transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 12px;
             color: #808080;
             border-left: 3px solid transparent;
         }
@@ -252,7 +249,7 @@
             display: none;
             border-left: 3px solid;
             opacity: 0;
-            transition: opacity 0.3s;
+            transition: opacity 0.5s;
         }
 
         .result-box.show {
@@ -480,7 +477,7 @@
 </head>
 <body>
     <audio id="bgMusic" loop>
-        <source id="audioSource" src="https://cdn.freesound.org/previews/612/612093_4921277-lq.mp3" type="audio/mpeg">
+        <source src="https://cdn.freesound.org/previews/612/612093_4921277-lq.mp3" type="audio/mpeg">
     </audio>
 
     <div class="sidebar">
@@ -632,7 +629,6 @@
     <script>
         let isPlaying = false;
 
-        // Music controls
         function toggleMusic() {
             const audio = document.getElementById('bgMusic');
             const btn = document.getElementById('playPauseBtn');
@@ -642,66 +638,42 @@
                 btn.textContent = '▶';
                 isPlaying = false;
             } else {
-                audio.play().catch(e => {
-                    console.log('Autoplay prevented:', e);
-                });
+                audio.play().catch(e => console.log('Autoplay prevented'));
                 btn.textContent = '■';
                 isPlaying = true;
             }
         }
 
-        // Initialize settings
         function loadSettings() {
             const theme = localStorage.getItem('theme') || 'dark';
             document.getElementById('themeSelect').value = theme;
-            
-            if (theme === 'light') {
-                document.body.classList.add('light-mode');
-            }
+            if (theme === 'light') document.body.classList.add('light-mode');
         }
 
         function changeTheme() {
             const theme = document.getElementById('themeSelect').value;
             localStorage.setItem('theme', theme);
-            
-            if (theme === 'light') {
-                document.body.classList.add('light-mode');
-            } else {
-                document.body.classList.remove('light-mode');
-            }
+            document.body.classList.toggle('light-mode', theme === 'light');
         }
 
-        // Tab switching
         function showTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-            });
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
             document.getElementById('tab-' + tabName).classList.add('active');
             event.target.closest('.nav-item').classList.add('active');
-            
-            if (tabName === 'keys') {
-                displayKeys();
-            }
+            if (tabName === 'keys') displayKeys();
         }
 
-        // Storage functions
         async function loadKeys() {
             try {
                 if (window.storage) {
                     const result = await window.storage.get('all_keys');
-                    if (result && result.value) {
-                        return JSON.parse(result.value);
-                    }
+                    if (result?.value) return JSON.parse(result.value);
                 }
                 const localData = localStorage.getItem('all_keys');
                 return localData ? JSON.parse(localData) : {};
-            } catch (error) {
-                console.error('Error loading keys:', error);
-                const localData = localStorage.getItem('all_keys');
-                return localData ? JSON.parse(localData) : {};
+            } catch {
+                return JSON.parse(localStorage.getItem('all_keys') || '{}');
             }
         }
 
@@ -709,205 +681,145 @@
             try {
                 const keysStr = JSON.stringify(keys);
                 localStorage.setItem('all_keys', keysStr);
-                
-                if (window.storage) {
-                    try {
-                        await window.storage.set('all_keys', keysStr);
-                    } catch (e) {
-                        console.log('window.storage not available');
-                    }
-                }
-                
-                console.log('Keys saved successfully');
+                if (window.storage) await window.storage.set('all_keys', keysStr).catch(() => {});
                 updateStats();
                 return true;
             } catch (error) {
-                console.error('Error saving keys:', error);
-                alert('Failed to save key: ' + error.message);
+                alert('Failed to save: ' + error.message);
                 return false;
             }
         }
 
-        // Generate random key
         function generateKeyString() {
             const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-            const segments = [];
-            for (let i = 0; i < 4; i++) {
-                let segment = '';
-                for (let j = 0; j < 4; j++) {
-                    segment += chars[Math.floor(Math.random() * chars.length)];
-                }
-                segments.push(segment);
-            }
-            return segments.join('-');
+            return Array(4).fill(0).map(() => 
+                Array(4).fill(0).map(() => chars[Math.floor(Math.random() * chars.length)]).join('')
+            ).join('-');
         }
 
-        // Generate new key
         async function generateKey() {
-            try {
-                const keys = await loadKeys();
-                const key = generateKeyString();
-                
-                keys[key] = {
-                    hwid: null,
-                    robloxUsername: null,
-                    robloxId: null,
-                    discordId: null,
-                    createdAt: Date.now(),
-                    redeemedAt: null,
-                    valid: true,
-                    blacklisted: false
-                };
-
-                const saved = await saveKeys(keys);
-                
-                if (saved) {
-                    const resultBox = document.getElementById('genResult');
-                    resultBox.innerHTML = `
-                        <p style="font-weight: 600; margin-bottom: 12px;">Key Generated Successfully</p>
-                        <div class="key-display">
-                            <span class="key-text">${key}</span>
-                            <button class="copy-btn" onclick="copyKey('${key}')">Copy</button>
-                        </div>
-                    `;
-                    resultBox.classList.add('show');
-                    await updateStats();
-                }
-            } catch (error) {
-                alert('Error: ' + error.message);
+            const keys = await loadKeys();
+            const key = generateKeyString();
+            keys[key] = {
+                hwid: null,
+                robloxUsername: null,
+                robloxId: null,
+                discordId: null,
+                createdAt: Date.now(),
+                redeemedAt: null,
+                valid: true,
+                blacklisted: false
+            };
+            if (await saveKeys(keys)) {
+                const resultBox = document.getElementById('genResult');
+                resultBox.innerHTML = `
+                    <p style="font-weight: 600; margin-bottom: 12px;">Key Generated Successfully</p>
+                    <div class="key-display">
+                        <span class="key-text">${key}</span>
+                        <button class="copy-btn" onclick="copyKey('${key}')">Copy</button>
+                    </div>
+                `;
+                resultBox.classList.add('show');
             }
         }
 
-        // Add manual key
         async function addManualKey() {
-            try {
-                const keyInput = document.getElementById('manualKey').value.toUpperCase().trim();
-                const discordId = document.getElementById('manualDiscordId').value.trim();
-                const resultBox = document.getElementById('manualResult');
-                
-                if (!keyInput) {
-                    resultBox.innerHTML = '<p style="color: #808080;">Please enter a key</p>';
-                    resultBox.className = 'result-box error show';
-                    
-                    setTimeout(() => {
-                        resultBox.classList.remove('show');
-                    }, 7000);
-                    return;
-                }
+            const key = document.getElementById('manualKey').value.toUpperCase().trim();
+            const discordId = document.getElementById('manualDiscordId').value.trim();
+            const resultBox = document.getElementById('manualResult');
+            
+            if (!key) {
+                resultBox.innerHTML = '<p style="color: #808080;">Please enter a key</p>';
+                resultBox.className = 'result-box error show';
+                setTimeout(() => resultBox.classList.remove('show'), 7000);
+                return;
+            }
 
-                const keys = await loadKeys();
-                
-                if (keys[keyInput]) {
-                    resultBox.innerHTML = '<p style="color: #808080;">This key already exists</p>';
-                    resultBox.className = 'result-box error show';
-                    
-                    setTimeout(() => {
-                        resultBox.classList.remove('show');
-                    }, 7000);
-                    return;
-                }
+            const keys = await loadKeys();
+            if (keys[key]) {
+                resultBox.innerHTML = '<p style="color: #808080;">Key already exists</p>';
+                resultBox.className = 'result-box error show';
+                setTimeout(() => resultBox.classList.remove('show'), 7000);
+                return;
+            }
 
-                keys[keyInput] = {
-                    hwid: null,
-                    robloxUsername: null,
-                    robloxId: null,
-                    discordId: discordId || null,
-                    createdAt: Date.now(),
-                    redeemedAt: null,
-                    valid: true,
-                    blacklisted: false
-                };
+            keys[key] = {
+                hwid: null,
+                robloxUsername: null,
+                robloxId: null,
+                discordId: discordId || null,
+                createdAt: Date.now(),
+                redeemedAt: null,
+                valid: true,
+                blacklisted: false
+            };
 
-                const saved = await saveKeys(keys);
-                
-                if (saved) {
-                    resultBox.innerHTML = '<p style="font-weight: 600;">Key added successfully</p>';
-                    resultBox.className = 'result-box success show';
-                    document.getElementById('manualKey').value = '';
-                    document.getElementById('manualDiscordId').value = '';
-                    await updateStats();
-                    
-                    setTimeout(() => {
-                        resultBox.classList.remove('show');
-                    }, 7000);
-                }
-            } catch (error) {
-                alert('Error: ' + error.message);
+            if (await saveKeys(keys)) {
+                resultBox.innerHTML = '<p style="font-weight: 600;">Key added successfully</p>';
+                resultBox.className = 'result-box success show';
+                document.getElementById('manualKey').value = '';
+                document.getElementById('manualDiscordId').value = '';
+                setTimeout(() => resultBox.classList.remove('show'), 7000);
             }
         }
 
-        // Blacklist key
         async function blacklistKey(key) {
             const keys = await loadKeys();
             keys[key].blacklisted = true;
             keys[key].valid = false;
             await saveKeys(keys);
-            await displayKeys();
+            displayKeys();
         }
 
-        // Unblacklist key
         async function unblacklistKey(key) {
             const keys = await loadKeys();
             keys[key].blacklisted = false;
             keys[key].valid = true;
             await saveKeys(keys);
-            await displayKeys();
+            displayKeys();
         }
 
-        // Check key validity
         async function checkKey() {
-            const keyInput = document.getElementById('checkKeyInput').value.toUpperCase().trim();
+            const key = document.getElementById('checkKeyInput').value.toUpperCase().trim();
             const resultBox = document.getElementById('checkResult');
             
-            if (!keyInput) {
+            if (!key) {
                 resultBox.innerHTML = '<p style="color: #808080;">Please enter a key</p>';
                 resultBox.className = 'result-box error show';
                 return;
             }
 
             const keys = await loadKeys();
-            const keyData = keys[keyInput];
+            const data = keys[key];
 
-            if (!keyData) {
-                resultBox.innerHTML = `
-                    <p style="font-weight: 600; margin-bottom: 8px;">Key Not Found</p>
-                    <p style="color: #808080; font-size: 14px;">
-                        Key <code>${keyInput}</code> does not exist in the system
-                    </p>
-                `;
+            if (!data) {
+                resultBox.innerHTML = `<p style="font-weight: 600; margin-bottom: 8px;">Key Not Found</p><p style="color: #808080; font-size: 14px;">Key <code>${key}</code> does not exist</p>`;
                 resultBox.className = 'result-box error show';
                 return;
             }
 
-            if (keyData.blacklisted) {
-                resultBox.innerHTML = `
-                    <p style="font-weight: 600; margin-bottom: 8px;">Key Blacklisted</p>
-                    <p style="color: #808080; font-size: 14px;">This key has been blacklisted and cannot be used</p>
-                `;
+            if (data.blacklisted) {
+                resultBox.innerHTML = '<p style="font-weight: 600; margin-bottom: 8px;">Key Blacklisted</p><p style="color: #808080; font-size: 14px;">Cannot be used</p>';
                 resultBox.className = 'result-box error show';
                 return;
             }
 
-            if (!keyData.valid) {
-                resultBox.innerHTML = `
-                    <p style="font-weight: 600; margin-bottom: 8px;">Key Invalid</p>
-                    <p style="color: #808080; font-size: 14px;">This key has been deactivated</p>
-                `;
+            if (!data.valid) {
+                resultBox.innerHTML = '<p style="font-weight: 600; margin-bottom: 8px;">Key Invalid</p><p style="color: #808080; font-size: 14px;">Deactivated</p>';
                 resultBox.className = 'result-box error show';
                 return;
             }
 
-            if (keyData.hwid) {
+            if (data.hwid) {
                 resultBox.innerHTML = `
                     <p style="font-weight: 600; margin-bottom: 12px;">Key Valid (Redeemed)</p>
                     <div style="color: #808080; font-size: 14px; line-height: 1.8;">
-                        <p>Key: <code>${keyInput}</code></p>
-                        <p>Status: Redeemed</p>
-                        <p>Discord ID: ${keyData.discordId || 'Not set'}</p>
-                        <p>HWID: <code>${keyData.hwid.substring(0, 32)}...</code></p>
-                        <p>Roblox User: ${keyData.robloxUsername || 'Not set'}</p>
-                        <p>Created: ${new Date(keyData.createdAt).toLocaleString()}</p>
-                        ${keyData.redeemedAt ? `<p>Redeemed: ${new Date(keyData.redeemedAt).toLocaleString()}</p>` : ''}
+                        <p>Key: <code>${key}</code></p>
+                        <p>Discord ID: ${data.discordId || 'Not set'}</p>
+                        <p>HWID: <code>${data.hwid.substring(0, 32)}...</code></p>
+                        <p>Roblox: ${data.robloxUsername || 'Not set'}</p>
+                        <p>Created: ${new Date(data.createdAt).toLocaleString()}</p>
+                        ${data.redeemedAt ? `<p>Redeemed: ${new Date(data.redeemedAt).toLocaleString()}</p>` : ''}
                     </div>
                 `;
                 resultBox.className = 'result-box success show';
@@ -915,35 +827,30 @@
                 resultBox.innerHTML = `
                     <p style="font-weight: 600; margin-bottom: 12px;">Key Valid (Available)</p>
                     <div style="color: #808080; font-size: 14px; line-height: 1.8;">
-                        <p>Key: <code>${keyInput}</code></p>
-                        <p>Status: Available (Not redeemed yet)</p>
-                        <p>Discord ID: ${keyData.discordId || 'Not set'}</p>
-                        <p>Created: ${new Date(keyData.createdAt).toLocaleString()}</p>
+                        <p>Key: <code>${key}</code></p>
+                        <p>Status: Not redeemed yet</p>
+                        <p>Discord ID: ${data.discordId || 'Not set'}</p>
+                        <p>Created: ${new Date(data.createdAt).toLocaleString()}</p>
                     </div>
                 `;
                 resultBox.className = 'result-box success show';
             }
         }
 
-        // Copy key
         function copyKey(key) {
             navigator.clipboard.writeText(key);
             event.target.textContent = 'Copied!';
-            setTimeout(() => {
-                event.target.textContent = 'Copy';
-            }, 2000);
+            setTimeout(() => event.target.textContent = 'Copy', 2000);
         }
 
-        // Delete key
         async function deleteKey(key) {
             if (!confirm('Delete this key?')) return;
             const keys = await loadKeys();
             delete keys[key];
             await saveKeys(keys);
-            await displayKeys();
+            displayKeys();
         }
 
-        // Update stats
         async function updateStats() {
             const keys = await loadKeys();
             const total = Object.keys(keys).length;
@@ -956,102 +863,50 @@
             document.getElementById('redeemedKeys').textContent = redeemed;
             document.getElementById('blacklistedKeys').textContent = blacklisted;
         }
-        <function_calls>
-<invoke name="artifacts">
-<parameter name="command">update</parameter>
-<parameter name="id">roblox_key_system</parameter>
-<parameter name="old_str">        // Update stats
-async function updateStats() {
-const keys = await loadKeys();
-const total = Object.keys(keys).length;
-const active = Object.values(keys).filter(k => !k.hwid && k.valid && !k.blacklisted).length;
-const redeemed = Object.values(keys).filter(k => k.hwid).length;
-const blacklisted = Object.values(keys).filter(k => k.blacklisted).length;
-        document.getElementById('totalKeys').textContent = total;
-        document.getElementById('activeKeys').textContent = active;
-        document.getElementById('redeemedKeys').textContent = redeemed;
-        document.getElementById('blacklistedKeys').textContent = blacklisted;
-    }</parameter>
-<parameter name="new_str">        // Update stats
-async function updateStats() {
-const keys = await loadKeys();
-const total = Object.keys(keys).length;
-const active = Object.values(keys).filter(k => !k.hwid && k.valid && !k.blacklisted).length;
-const redeemed = Object.values(keys).filter(k => k.hwid).length;
-const blacklisted = Object.values(keys).filter(k => k.blacklisted).length;
-        document.getElementById('totalKeys').textContent = total;
-        document.getElementById('activeKeys').textContent = active;
-        document.getElementById('redeemedKeys').textContent = redeemed;
-        document.getElementById('blacklistedKeys').textContent = blacklisted;
-    }
 
-    // Display all keys
-    async function displayKeys() {
-        const keys = await loadKeys();
-        const tbody = document.getElementById('keysTable');
-        
-        const total = Object.keys(keys).length;
-        
-        if (total === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: #808080;">No keys generated yet</td></tr>';
-            return;
-        }
-
-        tbody.innerHTML = '';
-        Object.entries(keys).reverse().forEach(([key, data]) => {
-            const row = document.createElement('tr');
-            let statusBadge;
+        async function displayKeys() {
+            const keys = await loadKeys();
+            const tbody = document.getElementById('keysTable');
             
-            if (data.blacklisted) {
-                statusBadge = '<span class="badge badge-blacklisted">Blacklisted</span>';
-            } else if (data.hwid) {
-                statusBadge = '<span class="badge badge-redeemed">Redeemed</span>';
-            } else {
-                statusBadge = '<span class="badge badge-available">Available</span>';
+            if (Object.keys(keys).length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: #808080;">No keys yet</td></tr>';
+                return;
             }
 
-            const blacklistBtn = data.blacklisted 
-                ? `<button class="action-btn" onclick="unblacklistKey('${key}')">Unblacklist</button>`
-                : `<button class="action-btn" onclick="blacklistKey('${key}')">Blacklist</button>`;
+            tbody.innerHTML = '';
+            Object.entries(keys).reverse().forEach(([key, data]) => {
+                const statusBadge = data.blacklisted ? '<span class="badge badge-blacklisted">Blacklisted</span>' :
+                    data.hwid ? '<span class="badge badge-redeemed">Redeemed</span>' :
+                    '<span class="badge badge-available">Available</span>';
 
-            row.innerHTML = `
-                <td><code>${key}</code></td>
-                <td>${statusBadge}</td>
-                <td>${data.discordId || '-'}</td>
-                <td><code style="font-size: 11px;">${data.hwid ? data.hwid.substring(0, 16) + '...' : '-'}</code></td>
-                <td>${data.robloxUsername || '-'}</td>
-                <td style="font-size: 12px; color: #808080;">${new Date(data.createdAt).toLocaleDateString()}</td>
-                <td>
-                    ${blacklistBtn}
-                    <button class="action-btn" onclick="deleteKey('${key}')">Delete</button>
-                </td>
-            `;
-            tbody.appendChild(row);
-        });
-    }
+                const blacklistBtn = data.blacklisted ? 
+                    `<button class="action-btn" onclick="unblacklistKey('${key}')">Unblacklist</button>` :
+                    `<button class="action-btn" onclick="blacklistKey('${key}')">Blacklist</button>`;
 
-    // Event listeners
-    document.addEventListener('DOMContentLoaded', function() {
-        loadSettings();
-        
-        document.getElementById('checkKeyInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') checkKey();
-        });
-        
-        document.getElementById('checkKeyInput').addEventListener('input', function(e) {
-            e.target.value = e.target.value.toUpperCase();
-        });
-        
-        document.getElementById('manualKey').addEventListener('input', function(e) {
-            e.target.value = e.target.value.toUpperCase();
-        });
-        
-        updateStats();
-        displayKeys();
-    });
+                tbody.innerHTML += `
+                    <tr>
+                        <td><code>${key}</code></td>
+                        <td>${statusBadge}</td>
+                        <td>${data.discordId || '-'}</td>
+                        <td><code style="font-size: 11px;">${data.hwid ? data.hwid.substring(0, 16) + '...' : '-'}</code></td>
+                        <td>${data.robloxUsername || '-'}</td>
+                        <td style="font-size: 12px; color: #808080;">${new Date(data.createdAt).toLocaleDateString()}</td>
+                        <td>${blacklistBtn}<button class="action-btn" onclick="deleteKey('${key}')">Delete</button></td>
+                    </tr>
+                `;
+            });
+        }
 
-    // Auto-refresh
-    setInterval(updateStats, 10000);
-</script>
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSettings();
+            document.getElementById('checkKeyInput').addEventListener('keypress', e => e.key === 'Enter' && checkKey());
+            document.getElementById('checkKeyInput').addEventListener('input', e => e.target.value = e.target.value.toUpperCase());
+            document.getElementById('manualKey').addEventListener('input', e => e.target.value = e.target.value.toUpperCase());
+            updateStats();
+            displayKeys();
+        });
+
+        setInterval(updateStats, 10000);
+    </script>
 </body>
-</html></parameter>
+</html>
