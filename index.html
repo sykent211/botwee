@@ -956,3 +956,102 @@
             document.getElementById('redeemedKeys').textContent = redeemed;
             document.getElementById('blacklistedKeys').textContent = blacklisted;
         }
+        <function_calls>
+<invoke name="artifacts">
+<parameter name="command">update</parameter>
+<parameter name="id">roblox_key_system</parameter>
+<parameter name="old_str">        // Update stats
+async function updateStats() {
+const keys = await loadKeys();
+const total = Object.keys(keys).length;
+const active = Object.values(keys).filter(k => !k.hwid && k.valid && !k.blacklisted).length;
+const redeemed = Object.values(keys).filter(k => k.hwid).length;
+const blacklisted = Object.values(keys).filter(k => k.blacklisted).length;
+        document.getElementById('totalKeys').textContent = total;
+        document.getElementById('activeKeys').textContent = active;
+        document.getElementById('redeemedKeys').textContent = redeemed;
+        document.getElementById('blacklistedKeys').textContent = blacklisted;
+    }</parameter>
+<parameter name="new_str">        // Update stats
+async function updateStats() {
+const keys = await loadKeys();
+const total = Object.keys(keys).length;
+const active = Object.values(keys).filter(k => !k.hwid && k.valid && !k.blacklisted).length;
+const redeemed = Object.values(keys).filter(k => k.hwid).length;
+const blacklisted = Object.values(keys).filter(k => k.blacklisted).length;
+        document.getElementById('totalKeys').textContent = total;
+        document.getElementById('activeKeys').textContent = active;
+        document.getElementById('redeemedKeys').textContent = redeemed;
+        document.getElementById('blacklistedKeys').textContent = blacklisted;
+    }
+
+    // Display all keys
+    async function displayKeys() {
+        const keys = await loadKeys();
+        const tbody = document.getElementById('keysTable');
+        
+        const total = Object.keys(keys).length;
+        
+        if (total === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: #808080;">No keys generated yet</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = '';
+        Object.entries(keys).reverse().forEach(([key, data]) => {
+            const row = document.createElement('tr');
+            let statusBadge;
+            
+            if (data.blacklisted) {
+                statusBadge = '<span class="badge badge-blacklisted">Blacklisted</span>';
+            } else if (data.hwid) {
+                statusBadge = '<span class="badge badge-redeemed">Redeemed</span>';
+            } else {
+                statusBadge = '<span class="badge badge-available">Available</span>';
+            }
+
+            const blacklistBtn = data.blacklisted 
+                ? `<button class="action-btn" onclick="unblacklistKey('${key}')">Unblacklist</button>`
+                : `<button class="action-btn" onclick="blacklistKey('${key}')">Blacklist</button>`;
+
+            row.innerHTML = `
+                <td><code>${key}</code></td>
+                <td>${statusBadge}</td>
+                <td>${data.discordId || '-'}</td>
+                <td><code style="font-size: 11px;">${data.hwid ? data.hwid.substring(0, 16) + '...' : '-'}</code></td>
+                <td>${data.robloxUsername || '-'}</td>
+                <td style="font-size: 12px; color: #808080;">${new Date(data.createdAt).toLocaleDateString()}</td>
+                <td>
+                    ${blacklistBtn}
+                    <button class="action-btn" onclick="deleteKey('${key}')">Delete</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    // Event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+        loadSettings();
+        
+        document.getElementById('checkKeyInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') checkKey();
+        });
+        
+        document.getElementById('checkKeyInput').addEventListener('input', function(e) {
+            e.target.value = e.target.value.toUpperCase();
+        });
+        
+        document.getElementById('manualKey').addEventListener('input', function(e) {
+            e.target.value = e.target.value.toUpperCase();
+        });
+        
+        updateStats();
+        displayKeys();
+    });
+
+    // Auto-refresh
+    setInterval(updateStats, 10000);
+</script>
+</body>
+</html></parameter>
